@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento de Eventos - UFPR Litoral</title>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #005b96;
+            --secondary-color: #e3f2fd;
+            --accent-color: #ff6f00;
+            --error-color: #d32f2f;
+            --success-color: #388e3c;
+            --warning-color: #ffa000;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        
+        .logo img {
+            height: 60px;
+            margin-right: 15px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+        
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        h1, h2, h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0,91,150,0.2);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        
+        button:hover {
+            background-color: #004578;
+        }
+        
+        .button-clear {
+            background-color: #757575;
+        }
+        
+        .button-clear:hover {
+            background-color: #616161;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+        }
+        
+        .radio-option input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .calendar-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .fc {
+            margin-top: 1rem;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .alert-success {
+            background-color: #e8f5e9;
+            color: var(--success-color);
+            border: 1px solid #c8e6c9;
+        }
+        
+        .alert-error {
+            background-color: #ffebee;
+            color: var(--error-color);
+            border: 1px solid #ffcdd2;
+        }
+        
+        .alert-warning {
+            background-color: #fff8e1;
+            color: var(--warning-color);
+            border: 1px solid #ffecb3;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 1.5rem;
+        }
+        
+        .conflict-alert {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #fff8e1;
+            color: var(--warning-color);
+            border: 1px solid #ffecb3;
+            padding: 0.75rem;
+            border-radius: 4px;
+            max-width: 300px;
+            display: none;
+            z-index: 100;
+        }
+        
+        .conflict-alert.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0 0.5rem;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .success-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .success-notification.show {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            
+            .form-container, .calendar-container {
+                padding: 1rem;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .form-actions button {
+                width: 100%;
+                margin-right: 0;
+            }
+            
+            .conflict-alert {
+                position: static;
+                max-width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .success-notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="https://www.ufpr.br/portalufpr/wp-content/uploads/2018/08/UFPR.png" alt="UFPR Logo">
+            <h1>Agendamento de Eventos Institucionais<br>UFPR Litoral</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="alert-message" class="alert hidden">
+            <span id="alert-text"></span>
+            <button class="alert-close">&times;</button>
+        </div>
+        
+        <div id="success-notification" class="success-notification">
+            <span>Evento registrado com sucesso!</span>
+            <button class="alert-close">&times;</button>
+        </div>
+        
+        <div class="form-container">
+            <div id="conflict-alert" class="conflict-alert">
+                <strong>Atenção!</strong> Este horário já está ocupado por outro evento.
+                <div id="conflict-details" style="margin-top: 0.5rem; font-size: 0.9rem;"></div>
+            </div>
+            
+            <h2>Solicitar Agendamento</h2>
+            <form id="event-form">
+                <div class="form-group">
+                    <label for="event-name">Nome do Evento *</label>
+                    <input type="text" id="event-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="requester-type">Tipo de Solicitante *</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="ufpr-requester" name="requester-type" value="ufpr" checked>
+                            <label for="ufpr-requester">Servidor UFPR</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="external-requester" name="requester-type" value="external">
+                            <label for="external-requester">Prefeitura/Governo</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="ufpr-fields">
+                    <div class="form-group">
+                        <label for="requester-name">Nome do Solicitante *</label>
+                        <input type="text" id="requester-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="requester-email">Email Institucional *</label>
+                        <input type="email" id="requester-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="requester-phone">Telefone Celular *</label>
+                        <input type="tel" id="requester-phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="requester-unit">Unidade *</label>
+                        <select id="requester-unit" required>
+                            <option value="">Selecione a unidade</option>
+                            <option value="litoral">Setor Litoral</option>
+                            <option value="matinhos">Campus Matinhos</option>
+                            <option value="guaratuba">Campus Guaratuba</option>
+                            <option value="outra">Outra unidade UFPR</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="requester-department">Setor *</label>
+                        <input type="text" id="requester-department" required>
+                    </div>
+                </div>
+                
+                <div id="external-fields" class="hidden">
+                    <div class="form-group">
+                        <label for="external-requester-name">Nome do Solicitante *</label>
+                        <input type="text" id="external-requester-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="external-requester-email">Email *</label>
+                        <input type="email" id="external-requester-email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="external-requester-phone">Telefone Celular *</label>
+                        <input type="tel" id="external-requester-phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="external-institution">Instituição *</label>
+                        <select id="external-institution" required>
+                            <option value="">Selecione a instituição</option>
+                            <option value="pref_mat">Prefeitura Municipal de Matinhos</option>
+                            <option value="pref_guara">Prefeitura Municipal de Guaratuba</option>
+                            <option value="pref_parnagua">Prefeitura Municipal de Pontal do Paraná</option>
+                            <option value="governo_pr">Governo do Estado do Paraná</option>
+                            <option value="outra">Outra instituição</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="external-department">Setor/Secretaria</label>
+                        <input type="text" id="external-department">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="event-date">Data do Evento *</label>
+                    <input type="date" id="event-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="start-time">Horário de Início *</label>
+                    <input type="time" id="start-time" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="end-time">Horário de Término *</label>
+                    <input type="time" id="end-time" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="event-description">Descrição do Evento</label>
+                    <textarea id="event-description" rows="4"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">Solicitar Agendamento</button>
+                    <button type="button" id="clear-form" class="button-clear">Limpar Formulário</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="calendar-container">
+            <h2>Calendário de Eventos</h2>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const conflictAlert = document.getElementById('conflict-alert');
+            const conflictDetails = document.getElementById('conflict-details');
+            const alertMessage = document.getElementById('alert-message');
+            const alertText = document.getElementById('alert-text');
+            const successNotification = document.getElementById('success-notification');
+            const closeButtons = document.querySelectorAll('.alert-close');
+            
+            // Fechar alertas
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.alert, .success-notification').classList.remove('show');
+                });
+            });
+            
+            // Mostrar notificação de sucesso
+            function showSuccessNotification() {
+                successNotification.classList.add('show');
+                setTimeout(() => {
+                    successNotification.classList.remove('show');
+                }, 5000);
+            }
+            
+            // Inicializar calendário
+            const calendarEl = document.getElementById('calendar');
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: [],
+                eventColor: '#005b96',
+                nowIndicator: true,
+                selectable: true,
+                selectMirror: true,
+                select: function(info) {
+                    document.getElementById('event-date').value = info.startStr.split('T')[0];
+                    calendar.unselect();
+                },
+                eventDidMount: function(info) {
+                    const tooltip = `${info.event.title}\nSolicitante: ${info.event.extendedProps.requester}\n${info.event.extendedProps.description || 'Sem descrição'}`;
+                    info.el.setAttribute('title', tooltip);
+                    
+                    if (info.event.extendedProps.hasConflict) {
+                        info.el.style.backgroundColor = '#d32f2f';
+                        info.el.style.borderColor = '#d32f2f';
+                    }
+                }
+            });
+            calendar.render();
+            
+            // Carregar eventos existentes
+            function loadEvents() {
+                const savedEvents = JSON.parse(localStorage.getItem('ufpr-litoral-events')) || [];
+                
+                savedEvents.forEach(event => {
+                    calendar.addEvent({
+                        title: event.title,
+                        start: event.start,
+                        end: event.end,
+                        extendedProps: {
+                            requester: event.requester,
+                            description: event.description,
+                            email: event.email,
+                            phone: event.phone,
+                            institution: event.institution,
+                            department: event.department
+                        }
+                    });
+                });
+            }
+            loadEvents();
+            
+            // Alternar entre campos UFPR e Externos
+            function toggleRequesterFields(isUFPR) {
+                const ufprFields = document.getElementById('ufpr-fields');
+                const externalFields = document.getElementById('external-fields');
+                
+                if (isUFPR) {
+                    ufprFields.classList.remove('hidden');
+                    externalFields.classList.add('hidden');
+                } else {
+                    ufprFields.classList.add('hidden');
+                    externalFields.classList.remove('hidden');
+                }
+            }
+            
+            document.querySelectorAll('input[name="requester-type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    toggleRequesterFields(this.value === 'ufpr');
+                });
+            });
+            
+            // Verificar conflitos em tempo real
+            function checkForConflicts() {
+                const eventDate = document.getElementById('event-date').value;
+                const startTime = document.getElementById('start-time').value;
+                const endTime = document.getElementById('end-time').value;
+                
+                if (!eventDate || !startTime || !endTime || startTime >= endTime) {
+                    conflictAlert.classList.remove('show');
+                    return;
+                }
+                
+                const eventData = {
+                    start: `${eventDate}T${startTime}`,
+                    end: `${eventDate}T${endTime}`
+                };
+                
+                const conflict = hasScheduleConflict(eventData);
+                
+                if (conflict) {
+                    const options = { hour: '2-digit', minute: '2-digit' };
+                    const conflictStart = new Date(conflict.start).toLocaleTimeString('pt-BR', options);
+                    const conflictEnd = new Date(conflict.end).toLocaleTimeString('pt-BR', options);
+                    
+                    conflictDetails.innerHTML = `
+                        <strong>Evento:</strong> ${conflict.title}<br>
+                        <strong>Horário:</strong> ${conflictStart} - ${conflictEnd}<br>
+                        <strong>Solicitante:</strong> ${conflict.requester}
+                    `;
+                    conflictAlert.classList.add('show');
+                } else {
+                    conflictAlert.classList.remove('show');
+                }
+            }
+            
+            document.getElementById('event-date').addEventListener('change', checkForConflicts);
+            document.getElementById('start-time').addEventListener('change', checkForConflicts);
+            document.getElementById('end-time').addEventListener('change', checkForConflicts);
+            
+            // Validar formulário
+            function validateForm() {
+                const isUFPR = document.getElementById('ufpr-requester').checked;
+                const eventName = document.getElementById('event-name').value;
+                const requesterName = isUFPR 
+                    ? document.getElementById('requester-name').value 
+                    : document.getElementById('external-requester-name').value;
+                const email = isUFPR 
+                    ? document.getElementById('requester-email').value 
+                    : document.getElementById('external-requester-email').value;
+                const phone = isUFPR 
+                    ? document.getElementById('requester-phone').value 
+                    : document.getElementById('external-requester-phone').value;
+                const institution = isUFPR 
+                    ? document.getElementById('requester-unit').value 
+                    : document.getElementById('external-institution').value;
+                const eventDate = document.getElementById('event-date').value;
+                const startTime = document.getElementById('start-time').value;
+                const endTime = document.getElementById('end-time').value;
+                
+                if (!eventName) {
+                    showAlert('Por favor, informe o nome do evento.', 'error');
+                    return false;
+                }
+                
+                if (!requesterName) {
+                    showAlert('Por favor, informe o nome do solicitante.', 'error');
+                    return false;
+                }
+                
+                if (!email) {
+                    showAlert('Por favor, informe o email do solicitante.', 'error');
+                    return false;
+                }
+                
+                if (!phone) {
+                    showAlert('Por favor, informe o telefone do solicitante.', 'error');
+                    return false;
+                }
+                
+                if (!institution) {
+                    showAlert(isUFPR 
+                        ? 'Por favor, selecione a unidade da UFPR.' 
+                        : 'Por favor, selecione a instituição.', 'error');
+                    return false;
+                }
+                
+                if (!eventDate) {
+                    showAlert('Por favor, selecione uma data para o evento.', 'error');
+                    return false;
+                }
+                
+                if (!startTime || !endTime) {
+                    showAlert('Por favor, preencha os horários de início e término.', 'error');
+                    return false;
+                }
+                
+                if (startTime >= endTime) {
+                    showAlert('O horário de término deve ser após o horário de início.', 'error');
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            // Verificar conflitos de agendamento
+            function hasScheduleConflict(newEvent) {
+                const savedEvents = JSON.parse(localStorage.getItem('ufpr-litoral-events')) || [];
+                const newStart = new Date(newEvent.start);
+                const newEnd = new Date(newEvent.end);
+                
+                for (const event of savedEvents) {
+                    const eventStart = new Date(event.start);
+                    const eventEnd = new Date(event.end);
+                    
+                    if (
+                        (newStart >= eventStart && newStart < eventEnd) ||
+                        (newEnd > eventStart && newEnd <= eventEnd) ||
+                        (newStart <= eventStart && newEnd >= eventEnd)
+                    ) {
+                        return {
+                            title: event.title,
+                            start: event.start,
+                            end: event.end,
+                            requester: event.requester,
+                            description: event.description
+                        };
+                    }
+                }
+                return false;
+            }
+            
+            // Salvar evento
+            function saveEvent(eventData) {
+                const savedEvents = JSON.parse(localStorage.getItem('ufpr-litoral-events')) || [];
+                savedEvents.push(eventData);
+                localStorage.setItem('ufpr-litoral-events', JSON.stringify(savedEvents));
+            }
+            
+            // Mostrar alerta
+            function showAlert(message, type) {
+                alertText.textContent = message;
+                alertMessage.className = `alert alert-${type}`;
+                alertMessage.classList.remove('hidden');
+            }
+            
+            // Limpar formulário
+            function clearForm() {
+                document.getElementById('event-form').reset();
+                toggleRequesterFields(true);
+                alertMessage.classList.add('hidden');
+                conflictAlert.classList.remove('show');
+            }
+            
+            document.getElementById('clear-form').addEventListener('click', clearForm);
+            
+            // Submissão do formulário
+            document.getElementById('event-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!validateForm()) {
+                    return;
+                }
+                
+                const isUFPR = document.getElementById('ufpr-requester').checked;
+                const eventDate = document.getElementById('event-date').value;
+                const startTime = document.getElementById('start-time').value;
+                const endTime = document.getElementById('end-time').value;
+                
+                const eventData = {
+                    title: document.getElementById('event-name').value,
+                    date: eventDate,
+                    start: `${eventDate}T${startTime}`,
+                    end: `${eventDate}T${endTime}`,
+                    description: document.getElementById('event-description').value,
+                    requester: isUFPR 
+                        ? document.getElementById('requester-name').value 
+                        : document.getElementById('external-requester-name').value,
+                    email: isUFPR 
+                        ? document.getElementById('requester-email').value 
+                        : document.getElementById('external-requester-email').value,
+                    phone: isUFPR 
+                        ? document.getElementById('requester-phone').value 
+                        : document.getElementById('external-requester-phone').value,
+                    institution: isUFPR 
+                        ? 'UFPR - ' + document.getElementById('requester-unit').value 
+                        : document.getElementById('external-institution').value,
+                    department: isUFPR 
+                        ? document.getElementById('requester-department').value 
+                        : document.getElementById('external-department').value,
+                    type: isUFPR ? 'ufpr' : 'external'
+                };
+                
+                if (hasScheduleConflict(eventData)) {
+                    showAlert(`Já existe um evento agendado para este horário. Por favor, escolha outra data/horário.`, 'error');
+                    return;
+                }
+                
+                saveEvent(eventData);
+                calendar.addEvent({
+                    title: eventData.title,
+                    start: eventData.start,
+                    end: eventData.end,
+                    extendedProps: {
+                        requester: eventData.requester,
+                        description: eventData.description,
+                        email: eventData.email,
+                        phone: eventData.phone,
+                        institution: eventData.institution,
+                        department: eventData.department
+                    }
+                });
+                
+                clearForm();
+                showSuccessNotification();
+            });
+        });
+    </script>
+</body>
+</html>
